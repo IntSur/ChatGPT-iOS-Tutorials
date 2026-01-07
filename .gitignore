@@ -1,7 +1,19 @@
 # Xcode
 .DS_Store
+._*
 build/
 DerivedData/
+
+# Avoid committing Xcode user data
+*.xcuserstate
+*.xcscmblueprint
+*.xcworkspace
+*.xcuserstate
+*.xcuserdatad
+*.xcuserdata
+*.xcscmblueprint
+*.xcworkspace/xcuserdata
+*.xcworkspace/xcshareddata
 
 # User-specific Xcode files
 *.xcuserstate
@@ -14,3 +26,6 @@ Package.resolved
 # Playgrounds
 timeline.xctimeline
 playground.xcworkspace
+
+# Avoid npm build files
+node_modules/
