@@ -70,7 +70,7 @@ do {
     print("Unexpected setup failure:", error)
 }
 
-// MARK: - COW, ARC
+// MARK: - COW, ARC Lab codes
 print("\n=== Mini Lab 1: Array COW ===")
 
 func bufferAddress(_ array: [Int]) -> String {
@@ -152,3 +152,36 @@ do {
 }
 
 print("after scope")
+
+
+// MARK: - MemoryLayout of struct
+///Task 值语义更新的开销主要是 88B 的固定拷贝；
+///String/Set 等大数据通过 COW 延迟复制；
+///旧值不可达后，其堆存储由 ARC 释放/复用。
+print("\n=== Mini Lab: MemoryLayout of Task & fields ===")
+
+func dumpLayout<T>(_ type: T.Type, _ name: String) {
+    print("\(name): size=\(MemoryLayout<T>.size), stride=\(MemoryLayout<T>.stride), alignment=\(MemoryLayout<T>.alignment)")
+}
+
+// 你自己的类型
+dumpLayout(Task.self, "Task")
+
+// Task 常见字段类型
+dumpLayout(UUID.self, "UUID")
+dumpLayout(Date.self, "Date")
+dumpLayout(String.self, "String")
+dumpLayout(Set<TaskTag>.self, "Set<TaskTag>")
+
+// 一些基本类型
+dumpLayout(Int.self, "Int")
+dumpLayout(Double.self, "Double")
+
+print("\n=== Mini Lab: Task size stays constant ===")
+let short = try Task.create(title: "Hi")
+let long = try Task.create(title: String(repeating: "A", count: 99))
+
+print("Task stride (bytes):", MemoryLayout<Task>.stride)
+print("short title count:", short.title.count)
+print("long title count:", long.title.count)
+print("Task stride is the same regardless of title length.")
