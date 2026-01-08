@@ -185,3 +185,27 @@ print("Task stride (bytes):", MemoryLayout<Task>.stride)
 print("short title count:", short.title.count)
 print("long title count:", long.title.count)
 print("Task stride is the same regardless of title length.")
+
+
+print("\n=== Day 4 Transition Matrix ===")
+
+func testTransition(from: TaskStatus, to: TaskStatus) {
+    do {
+        let task = try Task.create(title: "Matrix", status: from)
+        let updated = try task.updateStatus(to: to)
+
+        if updated.status == task.status {
+            print("[\(from) -> \(to)] ⚪️ no-op (same state)")
+        } else {
+            print("[\(from) -> \(to)] ✅ allowed")
+        }
+    } catch {
+        print("[\(from) -> \(to)] ❌ rejected -> \(error)")
+    }
+}
+
+for from in TaskStatus.allCases {
+    for to in TaskStatus.allCases {
+        testTransition(from: from, to: to)
+    }
+}

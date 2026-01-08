@@ -13,3 +13,17 @@ public enum TaskStatus: String, Codable, CaseIterable {
     case completed
     case archived
 }
+
+extension TaskStatus {
+    func canTransition(to next: TaskStatus) -> Bool {
+        switch (self, next) {
+        case (.pending, .archived),
+             (.pending, .completed),
+             (.completed, .archived),
+             (.completed, .pending):
+            return true;
+        default:
+            return false;
+        }
+    }
+}

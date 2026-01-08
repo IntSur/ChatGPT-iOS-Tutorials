@@ -142,22 +142,15 @@ public extension Task {
     }
     
     func updateStatus(to newStatus: TaskStatus) throws -> Task {
+        if newStatus == status {
+            return self
+        }
+        
         if status == .archived {
             throw TaskError.invalidStatusTransition(from: status, to: newStatus)
         }
         
-        let isChangeable: Bool = {
-            switch (status, newStatus) {
-            case (.pending, .completed), (.pending, .archived):
-                return true
-            case (.completed, .pending), (.completed, .archived):
-                return true
-            case (_, _):
-                return false
-            }
-        }()
-        
-        if !isChangeable {
+        guard status.canTransition(to: newStatus) else {
             throw TaskError.invalidStatusTransition(from: status, to: newStatus)
         }
         
