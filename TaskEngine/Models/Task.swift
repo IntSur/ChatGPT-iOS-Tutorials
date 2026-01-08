@@ -69,12 +69,100 @@ public extension Task {
         }
         
         return Task(
-            title: title,
+            title: trimmedTitle,
             note: note,
             status: status,
             createdAt: createdAt,
             dueAt: dueAt,
             tags: tags
         )
+    }
+}
+
+// MARK: - Updates (Controlled Mutation)
+public extension Task {
+    private func ensureNotArchived() throws {
+        guard status != .archived else {
+            throw TaskError.taskIsArchived
+        }
+    }
+    
+    func updateTitle(_ newTitle: String) throws -> Task {
+        try ensureNotArchived()
+
+        let trimmed = newTitle.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else {
+            throw TaskError.emptyTitle
+        }
+
+        let maxLength = 100
+        guard trimmed.count <= maxLength else {
+            throw TaskError.titleTooLong(max: maxLength)
+        }
+
+        var copy = self
+        copy.title = trimmed
+        return copy
+    }
+    
+    func updateNote(_ newNote: String?) throws -> Task {
+        try ensureNotArchived()
+        
+        var copy = self
+        copy.note = newNote?.trimmingCharacters(in: .whitespacesAndNewlines)
+        return copy
+    }
+    
+    func updateDueAt(_ newDueAt: Date?) throws -> Task {
+        try ensureNotArchived()
+        
+        if let newDueAt, newDueAt < createdAt {
+            throw TaskError.invalidDueDate
+        }
+        
+        var copy = self
+        copy.dueAt = newDueAt
+        return copy
+    }
+    
+    func addTag(_ newTag: TaskTag) throws -> Task {
+        try ensureNotArchived()
+        
+        var copy = self
+        copy.tags.insert(newTag)
+        return copy
+    }
+    
+    func removeTag(_ oldTag: TaskTag) throws -> Task {
+        try ensureNotArchived()
+        
+        var copy = self
+        copy.tags.remove(oldTag)
+        return copy
+    }
+    
+    func updateStatus(to newStatus: TaskStatus) throws -> Task {
+        if status == .archived {
+            throw TaskError.invalidStatusTransition(from: status, to: newStatus)
+        }
+        
+        let isChangeable: Bool = {
+            switch (status, newStatus) {
+            case (.pending, .completed), (.pending, .archived):
+                return true
+            case (.completed, .pending), (.completed, .archived):
+                return true
+            case (_, _):
+                return false
+            }
+        }()
+        
+        if !isChangeable {
+            throw TaskError.invalidStatusTransition(from: status, to: newStatus)
+        }
+        
+        var copy = self
+        copy.status = newStatus
+        return copy
     }
 }

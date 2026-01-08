@@ -12,4 +12,6 @@ public enum TaskError: Error, Equatable {
     case emptyTitle
     case titleTooLong(max: Int)
     case invalidDueDate
+    case taskIsArchived
+    case invalidStatusTransition(from: TaskStatus, to: TaskStatus)
 }
