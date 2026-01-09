@@ -11,6 +11,7 @@ print("TaskEngine booted 🚀")
 
 let tagWork = TaskTag(name: "Work")
 let tagHealth = TaskTag(name: "Health")
+let iOSWork = TaskTag(name: "iOS Work")
 
 print("\n=== Day 2 Error Handling Demo (do/catch) ===")
 
@@ -208,4 +209,76 @@ for from in TaskStatus.allCases {
     for to in TaskStatus.allCases {
         testTransition(from: from, to: to)
     }
+}
+
+print("\n=== Day 5A TaskStore Demo ===")
+
+let store = TaskStore()
+
+var day5_Task1 = try Task.create(title: "Day 5 task1")
+var day5_Task2 = try Task.create(title: "Day 5 task2")
+
+try store.add(day5_Task1)
+try store.add(day5_Task2)
+
+day5_Task1 = try day5_Task1.updateStatus(to: .completed)
+try store.update(day5_Task1)
+
+day5_Task2 = try day5_Task2.addTag(iOSWork)
+try store.update(day5_Task2)
+
+print("completed tasks:", store.tasks(with: .completed).map(\.title))
+print("iOS tasks:", store.tasks(containing: iOSWork).map(\.title))
+
+print("\n=== Day 5A Store get/remove Demo ===")
+
+do {
+    let store = TaskStore()
+    let t = try Task.create(title: "To be removed")
+    try store.add(t)
+
+    let got = try store.require(id: t.id)
+    print("require ->", got.title)
+
+    try store.remove(id: t.id)
+    print("removed ok, remaining:", store.tasks.count)
+
+    _ = try store.require(id: t.id) // 这里应抛错
+} catch {
+    print("expected error ->", error)
+}
+
+print("\n=== Day 5A Store apply Demo ===")
+
+do {
+    let store = TaskStore()
+
+    let tagWork = TaskTag(name: "Work")
+    let tagIOS = TaskTag(name: "iOS")
+
+    let day5_Task3 = try Task.create(title: "Apply demo task", tags: [tagWork])
+    try store.add(day5_Task3)
+
+    // 用 apply 更新状态
+    let completed = try store.apply(id: day5_Task3.id) { try $0.updateStatus(to: .completed) }
+    print("after complete:", completed.title, completed.status.rawValue)
+
+    // 用 apply 添加 tag
+    let tagged = try store.apply(id: day5_Task3.id) { try $0.addTag(tagIOS) }
+    print("after addTag:", tagged.title, tagged.tags.map(\.name).sorted())
+
+    // 一次 apply 串联多步更新（status + tag + note）
+    let chained = try store.apply(
+        id: day5_Task3.id,
+        { try $0.updateStatus(to: .completed) },
+        { try $0.addTag(tagIOS) },
+        { try $0.updateNote("shipped") }
+    )
+    print("after chained:", chained.title, chained.status.rawValue, chained.tags.map(\.name).sorted(), chained.note ?? "nil")
+
+    print("completed tasks:", store.tasks(with: .completed).map(\.title))
+    print("iOS tasks:", store.tasks(containing: tagIOS).map(\.title))
+
+} catch {
+    print("apply demo error ->", error)
 }
