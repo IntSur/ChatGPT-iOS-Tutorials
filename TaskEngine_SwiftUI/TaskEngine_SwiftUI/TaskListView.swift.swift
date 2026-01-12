@@ -40,7 +40,9 @@ struct TaskListView: View {
                     TextField("New task title", text: $newTitle)
                         .textFieldStyle(.roundedBorder)
 
-                    Button("Add") { addTask() }
+                    Button("Add") {
+                        addTaskAsync()
+                    }
                         .buttonStyle(.borderedProminent)
                         .disabled(newTitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                 }
@@ -88,6 +90,21 @@ struct TaskListView: View {
             newTitle = ""
         } catch {
             errorMessage = (error as? LocalizedError)?.errorDescription ?? "Something went wrong."
+        }
+    }
+    
+    private func addTaskAsync() {
+        let title = newTitle
+        newTitle = ""
+
+        _Concurrency.Task {
+            do {
+                _ = try await store.addAfterDelay(title: title, delayMilliseconds: 600)
+            } catch {
+                await MainActor.run {
+                    errorMessage = (error as? LocalizedError)?.errorDescription ?? String(describing: error)
+                }
+            }
         }
     }
 

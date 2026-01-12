@@ -8,6 +8,7 @@
 import Foundation
 import Combine
 
+@MainActor
 final class TaskStore: ObservableObject {
     @Published private(set) var tasks: [Task] = []
     
@@ -62,8 +63,24 @@ extension TaskStore {
         tasks.filter { $0.tags.contains(tag) }
     }
     
-    // MARK: - Apply (store-driven updates)
+    /// Simulates an async “remote create” (network/IO) and then writes back to the store safely.
+    /// - Note: Heavy work is done off the main actor; store mutation happens on the main actor.
+    func addAfterDelay(title: String, delayMilliseconds: UInt64 = 6_000) async throws -> Task {
+        let trimmed = title.trimmingCharacters(in: .whitespacesAndNewlines)
 
+        // 1) Background work (simulate network/IO). This runs off the main actor.
+        let finalTitle = try await _Concurrency.Task.detached(priority: .background) {
+            try await _Concurrency.Task.sleep(nanoseconds: delayMilliseconds * 1_000_000)
+            return trimmed
+        }.value
+
+        // 2) Back on MainActor: create domain object + write to store
+        let task = try Task.create(title: finalTitle)
+        try add(task)
+        return task
+    }
+    
+    // MARK: - Apply (store-driven updates)
     private func applyInternal(id: UUID, _ transform: (Task) throws -> Task) throws -> Task {
         guard let index = tasks.firstIndex(where: { $0.id == id }) else {
             throw StoreError.taskNotFound(id: id)
@@ -75,13 +92,12 @@ extension TaskStore {
         return updated
     }
 
-    @MainActor
+    
     @discardableResult
     func apply(id: UUID, _ transform: (Task) throws -> Task) throws -> Task {
         try applyInternal(id: id, transform)
     }
     
-    @MainActor
     @discardableResult
     func apply(id: UUID, _ transforms: ((Task) throws -> Task)...) throws -> Task {
         try applyInternal(id: id) { current in
