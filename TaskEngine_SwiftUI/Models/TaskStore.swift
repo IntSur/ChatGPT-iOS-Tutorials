@@ -11,9 +11,60 @@ import Combine
 @MainActor
 final class TaskStore: ObservableObject {
     @Published private(set) var tasks: [Task] = []
-    
-    init(tasks: [Task] = []) {
+    @Published private(set) var lastPersistenceError: String?
+    private var didBootstrap = false
+    private var pendingSaveTask: _Concurrency.Task<Void, Never>?
+    private let repo: TaskRepository
+
+    init(tasks: [Task] = [], repo: TaskRepository = FileTaskRepository()) {
         self.tasks = tasks
+        self.repo = repo
+    }
+    
+    /// Loads tasks from disk once per app launch.
+    func bootstrapIfNeeded() async {
+        guard !didBootstrap else { return }
+        didBootstrap = true
+
+        // Load off the main actor, then assign on the main actor (this type is @MainActor).
+        let loaded: [Task] = await _Concurrency.Task.detached(priority: .utility) {
+            await (try? self.repo.load()) ?? []
+        }.value
+
+        self.tasks = loaded
+    }
+    
+    ///In this way, you will force the last modification to be written to the disk before "user switches to the background/system recycling".
+    func flushNow() async {
+        let snapshot = self.tasks
+
+        pendingSaveTask?.cancel()
+        pendingSaveTask = nil
+
+        do {
+            try await _Concurrency.Task.detached(priority: .utility) {
+                try await self.repo.save(snapshot)
+            }.value
+            self.lastPersistenceError = nil
+        } catch {
+            self.lastPersistenceError = String(describing: error)
+        }
+    }
+
+    /// Debounced background save to avoid writing on every small change.
+    private func scheduleSave() {
+        let snapshot = self.tasks
+
+        pendingSaveTask?.cancel()
+        pendingSaveTask = _Concurrency.Task.detached(priority: .utility) { [snapshot] in
+            do {
+                try await _Concurrency.Task.sleep(nanoseconds: 300_000_000)
+                try await self.repo.save(snapshot)
+                await MainActor.run { self.lastPersistenceError = nil }
+            } catch {
+                await MainActor.run { self.lastPersistenceError = String(describing: error) }
+            }
+        }
     }
 }
 
@@ -28,6 +79,7 @@ extension TaskStore {
         }
         
         tasks.append(task)
+        scheduleSave()
     }
     
     func get(id: UUID) -> Task? {
@@ -46,6 +98,7 @@ extension TaskStore {
             throw StoreError.taskNotFound(id: id)
         }
         tasks.remove(at: index)
+        scheduleSave()
     }
     
     func update(_ task: Task) throws {
@@ -53,6 +106,7 @@ extension TaskStore {
             throw StoreError.taskNotFound(id: task.id)
         }
         tasks[index] = task
+        scheduleSave()
     }
     
     func tasks(with status: TaskStatus) -> [Task] {
@@ -61,6 +115,11 @@ extension TaskStore {
     
     func tasks(containing tag: TaskTag) -> [Task] {
         tasks.filter { $0.tags.contains(tag) }
+    }
+    
+    func replaceAll(with tasks: [Task]) {
+        self.tasks = tasks
+        scheduleSave()
     }
     
     /// Simulates an async “remote create” (network/IO) and then writes back to the store safely.
@@ -89,6 +148,7 @@ extension TaskStore {
         let current = tasks[index]
         let updated = try transform(current)
         tasks[index] = updated
+        scheduleSave()
         return updated
     }
 

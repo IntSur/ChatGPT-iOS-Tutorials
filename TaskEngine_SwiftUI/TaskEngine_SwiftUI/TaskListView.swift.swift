@@ -41,7 +41,7 @@ struct TaskListView: View {
                         .textFieldStyle(.roundedBorder)
 
                     Button("Add") {
-                        addTaskAsync()
+                        addTask()
                     }
                         .buttonStyle(.borderedProminent)
                         .disabled(newTitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
@@ -69,6 +69,9 @@ struct TaskListView: View {
                     .onDelete(perform: delete)
                 }
                 .listStyle(.plain)
+            }
+            .task {
+                await store.bootstrapIfNeeded()
             }
             .navigationTitle("Task Engine")
             .alert("Error", isPresented: Binding(

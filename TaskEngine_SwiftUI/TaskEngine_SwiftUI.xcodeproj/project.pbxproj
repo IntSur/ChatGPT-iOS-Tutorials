@@ -13,6 +13,8 @@
 		8F14EED72F11760A00923B0C /* StoreError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8F14EECF2F11760A00923B0C /* StoreError.swift */; };
 		8F14EED82F11760A00923B0C /* TaskTag.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8F14EECC2F11760A00923B0C /* TaskTag.swift */; };
 		8F14EED92F11760A00923B0C /* TaskStatus.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8F14EECB2F11760A00923B0C /* TaskStatus.swift */; };
+		8FDBC38D2F15267C007DDB54 /* TaskPersistence.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8FDBC38C2F15267C007DDB54 /* TaskPersistence.swift */; };
+		8FDBC38F2F1543D7007DDB54 /* TaskRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8FDBC38E2F1543D7007DDB54 /* TaskRepository.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -23,6 +25,8 @@
 		8F14EECD2F11760A00923B0C /* TaskError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskError.swift; sourceTree = "<group>"; };
 		8F14EECE2F11760A00923B0C /* TaskStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskStore.swift; sourceTree = "<group>"; };
 		8F14EECF2F11760A00923B0C /* StoreError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoreError.swift; sourceTree = "<group>"; };
+		8FDBC38C2F15267C007DDB54 /* TaskPersistence.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskPersistence.swift; sourceTree = "<group>"; };
+		8FDBC38E2F1543D7007DDB54 /* TaskRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskRepository.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -69,6 +73,8 @@
 				8F14EECC2F11760A00923B0C /* TaskTag.swift */,
 				8F14EECD2F11760A00923B0C /* TaskError.swift */,
 				8F14EECE2F11760A00923B0C /* TaskStore.swift */,
+				8FDBC38C2F15267C007DDB54 /* TaskPersistence.swift */,
+				8FDBC38E2F1543D7007DDB54 /* TaskRepository.swift */,
 				8F14EECF2F11760A00923B0C /* StoreError.swift */,
 			);
 			path = Models;
@@ -150,9 +156,11 @@
 			files = (
 				8F14EED32F11760A00923B0C /* TaskStore.swift in Sources */,
 				8F14EED52F11760A00923B0C /* Task.swift in Sources */,
+				8FDBC38F2F1543D7007DDB54 /* TaskRepository.swift in Sources */,
 				8F14EED62F11760A00923B0C /* TaskError.swift in Sources */,
 				8F14EED72F11760A00923B0C /* StoreError.swift in Sources */,
 				8F14EED82F11760A00923B0C /* TaskTag.swift in Sources */,
+				8FDBC38D2F15267C007DDB54 /* TaskPersistence.swift in Sources */,
 				8F14EED92F11760A00923B0C /* TaskStatus.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
