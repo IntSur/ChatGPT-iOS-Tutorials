@@ -17,6 +17,10 @@ final class TaskStore: ObservableObject {
 }
 
 extension TaskStore {
+    var sortedTasks: [Task] {
+        tasks.sorted { $0.createdAt < $1.createdAt }
+    }
+    
     func add(_ task: Task) throws {
         guard tasks.contains(where: { $0.id == task.id }) == false else {
             throw StoreError.taskAlreadyExists(id: task.id)
